@@ -1,39 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
+import {useRoleAuth} from "../hooks/useRoleAuth.ts";
 
 export default function SignInPage() {
+  // const navigate = useNavigate();
+  // const auth = useAuth();
+  const { signIn, user, loading: authLoading } = useAuth();
+  const { role, loading: roleLoading } = useRoleAuth();
   const navigate = useNavigate();
-  const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  // Check for redirect after login
+  useEffect(() => {
+    // Only redirect when both auth and role data are fully loaded
+    if (user && !authLoading && !roleLoading) {
+      console.log('SignInPage: Ready to redirect with role:', role);
+
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+      if (redirectPath) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        // Set flag to allow navigation
+        sessionStorage.setItem('intentional_navigation', 'true');
+        navigate(redirectPath);
+      } else {
+        // Set flag to allow navigation
+        sessionStorage.setItem('intentional_navigation', 'true');
+        navigate('/dashboard');
+      }
+    }
+  }, [user, role, authLoading, roleLoading, navigate]);
+
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await signIn(email.trim(), password.trim());
+
+      // console.log('data', data);
 
       if (error) throw error;
-      
-      if (data.user) {
-        // Check if auth.setUser is a function before calling it
-        if (typeof auth.setUser === 'function') {
-          auth.setUser(data.user);
-        } else {
-          console.warn('setUser is not available in auth context');
-        }
-        navigate('/dashboard');
+
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email.trim());
+      } else {
+        localStorage.removeItem('rememberedEmail');
       }
     } catch (err: any) {
       console.error('Error signing in:', err);
@@ -52,13 +73,13 @@ export default function SignInPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo */}
         <div className="flex justify-center">
-          <img 
-            src="https://edcsftvorssaojmyfqgs.supabase.co/storage/v1/object/public/homepage-assets//png%20100%20x%20100%20(1).png" 
-            alt="AgentVerify Logo" 
+          <img
+            src="https://edcsftvorssaojmyfqgs.supabase.co/storage/v1/object/public/homepage-assets//png%20100%20x%20100%20(1).png"
+            alt="AgentVerify Logo"
             className="h-20 w-20"
           />
         </div>
-        
+
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
           Sign in to your account
         </h2>
@@ -72,7 +93,7 @@ export default function SignInPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-200">
-          <form className="space-y-6" onSubmit={handleSignIn}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="rounded-md bg-red-50 p-4">
                 <div className="flex">
@@ -84,7 +105,7 @@ export default function SignInPage() {
                 </div>
               </div>
             )}
-            
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -138,6 +159,7 @@ export default function SignInPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-black focus:ring-[#CEFA05] border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">

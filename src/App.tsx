@@ -52,6 +52,7 @@ function PrivateRoute({ children, requiredRole = 'any' }: PrivateRouteProps) {
   return <UserDataProvider>{children}</UserDataProvider>;
 }
 
+
 const App = memo(function App() {
   // Initialize page visibility handling at the app level
   useEffect(() => {
@@ -89,15 +90,15 @@ const App = memo(function App() {
             } />
 
             {/* Developer Dashboard Routes */}
-            <Route 
-              path="/developer-dashboard/*" 
+            <Route
+              path="/developer-dashboard/*"
               element={
                 <PrivateRoute requiredRole="developer">
                   <Suspense fallback={<PageLoader />}>
                     <DeveloperDashboardPage />
                   </Suspense>
                 </PrivateRoute>
-              } 
+              }
             />
 
             {/* Dashboard Redirect Route */}

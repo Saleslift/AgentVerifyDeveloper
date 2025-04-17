@@ -59,8 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ): Promise<{ error: AuthError | null; user?: User | null }> => {
     try {
       isManualAuthAction.current = true;
-      console.log('Starting signup process with email:', email);
-      console.log('Metadata payload:', metadata);
 
       const role = metadata?.data?.role;
       if (!role || !['agent', 'agency', 'developer'].includes(role)) {
@@ -152,6 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: email.trim(),
         password: password.trim(),
       });
+      console.log('error signin', error);
 
       if (error) return { error };
 
@@ -171,6 +170,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.warn('Profile not found. Skipping creation during sign-in to avoid policy issues.');
       }
 
+      console.log('Sign-in successful, user:', data.user);
+      setUser(data?.user)
       await new Promise(resolve => setTimeout(resolve, 500));
 
       return { error: null };

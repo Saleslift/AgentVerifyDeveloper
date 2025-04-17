@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Shield,
-  MessageSquare,
   Star,
-  User,
   ArrowRight,
   Building2
 } from 'lucide-react';
