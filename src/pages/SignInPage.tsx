@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../utils/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
 import {useRoleAuth} from "../hooks/useRoleAuth.ts";
 
 export default function SignInPage() {
-  // const navigate = useNavigate();
-  // const auth = useAuth();
   const { signIn, user, loading: authLoading } = useAuth();
   const { role, loading: roleLoading } = useRoleAuth();
   const navigate = useNavigate();
